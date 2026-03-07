@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: personal
+
+  # Virtual Threads (Java 21)
+  threads:
+    virtual:
+      enabled: true
+
+  # MongoDB
+  data:
+    mongodb:
+      database: mfa_auth_db
+      uri: mongodb+srv://loki-at-ilmtec:loki%40987%23123@cluster0.avynu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+  # OAuth2 Social Login
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope: openid, profile, email
+            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
+          github:
+            client-id: ${GITHUB_CLIENT_ID:your-github-client-id}
+            client-secret: ${GITHUB_CLIENT_SECRET:your-github-client-secret}
+            scope: user:email, read:user
+            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: id
+
+  # Email (Gmail SMTP for OTP delivery)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME:your-email@gmail.com}
+    password: ${GMAIL_APP_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enabled: true
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
+
+# Application Custom Config
+app:
+  jwt:
+    secret: ${JWT_SECRET:mySuperSecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLongForHS256Algorithm2024}
+    expiration-ms: 86400000        # 24 hours
+    mfa-expiration-ms: 300000      # 5 minutes (MFA pending token)
+
+  totp:
+    issuer: PasswayMFA
+
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:your-twilio-account-sid}
+    auth-token: ${TWILIO_AUTH_TOKEN:your-twilio-auth-token}
+    phone-number: ${TWILIO_PHONE_NUMBER:+1234567890}
+
+  otp:
+    expiration-seconds: 300        # 5 minutes
+
+  webauthn:
+    rp-id: localhost
+    rp-name: Passway MFA
+    origin: http://localhost:4200
+
+  cors:
+    allowed-origins: http://localhost:4200
+
+server:
+  port: 8080
