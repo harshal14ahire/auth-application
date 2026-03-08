@@ -14,8 +14,9 @@ spring:
   mail:
     username: ${GMAIL_USERNAME}
     password: ${GMAIL_APP_PASSWORD}
-  mongodb:
-    uri: ${MONGODB_URI}
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
 
 app:
   jwt:
