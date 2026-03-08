@@ -1,0 +1,37 @@
+# Production profile — all secrets come from Render environment variables
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+
+  mail:
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID}
+    auth-token: ${TWILIO_AUTH_TOKEN}
+    phone-number: ${TWILIO_PHONE_NUMBER}
+  cors:
+    allowed-origins: ${FRONTEND_URL:https://auth-web-app.vercel.app}
+  webauthn:
+    rp-id: ${WEBAUTHN_RP_ID:auth-web-app.vercel.app}
+    rp-name: Passway MFA
+    origin: ${FRONTEND_URL:https://auth-web-app.vercel.app}
+
+server:
+  port: ${PORT:8080}
