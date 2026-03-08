@@ -27,11 +27,11 @@ app:
     auth-token: ${TWILIO_AUTH_TOKEN}
     phone-number: ${TWILIO_PHONE_NUMBER}
   cors:
-    allowed-origins: ${FRONTEND_URL:https://auth-web-app.vercel.app}
+    allowed-origins: ${FRONTEND_URL:https://auth-web-app-ashy.vercel.app}
   webauthn:
-    rp-id: ${WEBAUTHN_RP_ID:auth-web-app.vercel.app}
+    rp-id: ${WEBAUTHN_RP_ID:auth-web-app-ashy.vercel.app}
     rp-name: Passway MFA
-    origin: ${FRONTEND_URL:https://auth-web-app.vercel.app}
+    origin: ${FRONTEND_URL:https://auth-web-app-ashy.vercel.app}
 
 server:
   port: ${PORT:8080}
