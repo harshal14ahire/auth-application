@@ -10,8 +10,7 @@ spring:
   # MongoDB
   data:
     mongodb:
-      database: mfa_auth_db
-      uri: ${MONGODB_URI:mongodb+srv://loki-at-ilmtec:loki%40987%23123@cluster0.avynu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
+      uri: ${MONGODB_URI:mongodb+srv://loki-at-ilmtec:loki%40987%23123@cluster0.avynu.mongodb.net/mfa_auth_db?retryWrites=true&w=majority&appName=Cluster0}
 
   # OAuth2 Social Login
   security:
