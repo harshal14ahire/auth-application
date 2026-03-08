@@ -1,5 +1,10 @@
 # Production profile — all secrets come from Render environment variables
 spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: mfa_auth_db
+
   security:
     oauth2:
       client:
@@ -14,9 +19,6 @@ spring:
   mail:
     username: ${GMAIL_USERNAME}
     password: ${GMAIL_APP_PASSWORD}
-  data:
-    mongodb:
-      uri: ${MONGODB_URI}
 
 app:
   jwt:
