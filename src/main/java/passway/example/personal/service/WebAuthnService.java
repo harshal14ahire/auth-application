@@ -171,6 +171,30 @@ public class WebAuthnService {
                                 .build();
         }
 
+        public boolean verifyAuthentication(String userId, String credentialIdBase64) {
+                try {
+                        Challenge challenge = challengeStore.remove(userId);
+                        if (challenge == null) {
+                                log.warn("No authentication challenge found for user {}", userId);
+                                return false;
+                        }
+
+                        List<MfaDevice> devices = mfaDeviceRepository.findByUserId(userId);
+                        boolean deviceExists = devices.stream().anyMatch(d -> d.getCredentialId().equals(credentialIdBase64));
+
+                        if (deviceExists) {
+                                log.info("WebAuthn authentication successful for user {}", userId);
+                                return true;
+                        } else {
+                                log.warn("Unknown credential ID {} for user {}", credentialIdBase64, userId);
+                                return false;
+                        }
+                } catch (Exception e) {
+                        log.error("WebAuthn authentication failed: {}", e.getMessage());
+                        return false;
+                }
+        }
+
         public boolean hasRegisteredDevices(String userId) {
                 return !mfaDeviceRepository.findByUserId(userId).isEmpty();
         }

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PROJECT_DIR="/Users/harshalahire/Downloads/mfa-frontend"
+PROJECT_DIR="/Users/harshalahire/Leanings/auth-application/mfa-frontend"
 echo "🚀 Creating Angular 21 MFA Frontend at $PROJECT_DIR"
 
 # Clean if exists
@@ -24,7 +24,7 @@ cat > package.json << 'PKGJSON'
   },
   "devDependencies": {
     "@angular/build": "^21.0.0", "@angular/cli": "^21.0.0",
-    "@angular/compiler-cli": "^21.0.0", "typescript": "~5.8.0"
+    "@angular/compiler-cli": "^21.0.0", "typescript": "~5.9.0"
   }
 }
 PKGJSON

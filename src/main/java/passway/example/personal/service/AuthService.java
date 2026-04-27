@@ -32,6 +32,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final TotpService totpService;
     private final OtpService otpService;
+    private final WebAuthnService webAuthnService;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
 
@@ -116,6 +117,32 @@ public class AuthService {
         return AuthResponse.success(token);
     }
 
+    public void sendLoginOtp(String mfaToken, MfaMethod method) {
+        if (!jwtService.isMfaPendingToken(mfaToken)) {
+            throw new RuntimeException("Invalid MFA token");
+        }
+
+        String username = jwtService.extractUsername(mfaToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (method == MfaMethod.EMAIL_OTP || method == MfaMethod.SMS_OTP) {
+            otpService.generateAndSendOtp(user.getId(), method);
+        } else {
+            throw new RuntimeException("Method does not support OTP");
+        }
+    }
+
+    public passway.example.personal.dto.WebAuthnResponse getWebAuthnLoginOptions(String mfaToken) {
+        if (!jwtService.isMfaPendingToken(mfaToken)) {
+            throw new RuntimeException("Invalid MFA token");
+        }
+        String username = jwtService.extractUsername(mfaToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return webAuthnService.generateAuthenticationOptions(user.getId());
+    }
+
     private boolean verifyMfaCode(User user, String code, MfaMethod method) {
         return switch (method) {
             case TOTP -> {
@@ -125,7 +152,7 @@ public class AuthService {
                 yield totpService.verifyCode(user.getTotpSecret(), code);
             }
             case EMAIL_OTP, SMS_OTP -> otpService.verifyOtp(user.getId(), code, method);
-            case WEBAUTHN -> throw new RuntimeException("WebAuthn verification uses a different flow");
+            case WEBAUTHN -> webAuthnService.verifyAuthentication(user.getId(), code);
         };
     }
 }

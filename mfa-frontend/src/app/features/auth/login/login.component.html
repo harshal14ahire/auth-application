@@ -1,0 +1,104 @@
+<div class="page-container">
+  <div class="auth-card glass-card animate-in">
+    <div class="step-indicator">
+      <div class="step-dot" [class.active]="step() === 1" [class.completed]="step() > 1"></div>
+      <div class="step-dot" [class.active]="step() === 2"></div>
+    </div>
+
+    <!-- STEP 1: Identify -->
+    @if (step() === 1) {
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Sign in to your secure account</p>
+
+      @if (error()) {
+        <div class="toast-inline toast-error" role="alert" aria-live="polite">{{ error() }}</div>
+      }
+
+      <div class="form-group">
+        <label for="username" id="lbl-username">Username</label>
+        <input id="username" type="text" [ngModel]="username()" (ngModelChange)="username.set($event)"
+               placeholder="Enter your username" aria-labelledby="lbl-username" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="password" id="lbl-password">Password</label>
+        <input id="password" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)"
+               placeholder="Enter your password" aria-labelledby="lbl-password" autocomplete="current-password"
+               (keyup.enter)="onLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%; margin-bottom:16px"
+              [disabled]="loading() || !username() || !password()" (click)="onLogin()"
+              aria-label="Sign in with credentials">
+        @if (loading()) { <span class="loading">⏳</span> Signing in... } @else { 🔐 Sign In }
+      </button>
+
+      <div class="divider">or continue with</div>
+
+      <div style="display:flex; gap:10px">
+        <button class="btn btn-social btn-google" (click)="loginGoogle()" aria-label="Sign in with Google">
+          <span>🔴</span> Google
+        </button>
+        <button class="btn btn-social btn-github" (click)="loginGithub()" aria-label="Sign in with GitHub">
+          <span>⚫</span> GitHub
+        </button>
+      </div>
+
+      <p style="text-align:center; margin-top:20px; font-size:14px; color:var(--text-secondary)">
+        Don't have an account? <a routerLink="/register">Register</a>
+      </p>
+    }
+
+    <!-- STEP 2: MFA Challenge -->
+    @if (step() === 2) {
+      <h1>🛡️ Verify Identity</h1>
+      <p class="subtitle">Complete multi-factor authentication</p>
+
+      @if (error()) {
+        <div class="toast-inline toast-error" role="alert">{{ error() }}</div>
+      }
+
+      @if (mfaMethods().length > 1) {
+        <div class="form-group">
+          <label for="mfa-method">Authentication Method</label>
+          <select id="mfa-method" [ngModel]="selectedMethod()" (ngModelChange)="selectedMethod.set($event)">
+            @for (m of mfaMethods(); track m) { <option [value]="m">{{ m }}</option> }
+          </select>
+        </div>
+      }
+
+      @if (selectedMethod() === 'EMAIL_OTP' || selectedMethod() === 'SMS_OTP') {
+        <button class="btn btn-outline" style="width:100%; margin-bottom:16px" (click)="sendOtp()"
+                aria-label="Send verification code">
+          📨 Send Code via {{ selectedMethod() === 'EMAIL_OTP' ? 'Email' : 'SMS' }}
+        </button>
+      }
+
+      @if (selectedMethod() === 'TOTP') {
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px">
+          Open your Google Authenticator app and enter the 6-digit code
+        </p>
+      }
+
+      @if (selectedMethod() === 'WEBAUTHN') {
+        <div style="text-align:center; padding: 20px 0;">
+          <div style="font-size: 40px; margin-bottom: 16px;">🔐</div>
+          <button class="btn btn-primary" style="width:100%" [disabled]="loading()" (click)="webAuthnLogin()">
+            @if (loading()) { <span class="loading">⏳</span> Waiting for Passkey... } @else { 👆 Use Passkey / Fingerprint }
+          </button>
+        </div>
+      } @else {
+        <div class="form-group">
+          <label for="mfa-code">Verification Code</label>
+          <input id="mfa-code" type="text" [ngModel]="mfaCode()" (ngModelChange)="mfaCode.set($event)"
+                 placeholder="Enter 6-digit code" maxlength="6" autocomplete="one-time-code"
+                 aria-label="MFA verification code" (keyup.enter)="onVerifyMfa()"
+                 style="text-align:center; font-size:24px; letter-spacing:8px">
+        </div>
+        <button class="btn btn-primary" style="width:100%" [disabled]="loading() || mfaCode().length < 6"
+                (click)="onVerifyMfa()" aria-label="Verify MFA code">
+          @if (loading()) { <span class="loading">⏳</span> Verifying... } @else { ✅ Verify }
+        </button>
+      }
+      <button class="btn btn-outline" style="width:100%; margin-top:10px" (click)="step.set(1)">← Back</button>
+    }
+  </div>
+</div>
