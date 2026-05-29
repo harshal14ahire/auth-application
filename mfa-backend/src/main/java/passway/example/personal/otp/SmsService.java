@@ -1,29 +1,26 @@
-package passway.example.personal.service;
+package passway.example.personal.otp;
 
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import passway.example.personal.config.AppProperties;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SmsService {
 
-    @Value("${app.twilio.account-sid}")
-    private String accountSid;
-
-    @Value("${app.twilio.auth-token}")
-    private String authToken;
-
-    @Value("${app.twilio.phone-number}")
-    private String fromPhoneNumber;
+    private final AppProperties appProperties;
 
     @PostConstruct
     public void init() {
-        if (!accountSid.startsWith("your-")) {
+        String accountSid = appProperties.twilio().accountSid();
+        String authToken = appProperties.twilio().authToken();
+        if (accountSid != null && !accountSid.startsWith("your-")) {
             Twilio.init(accountSid, authToken);
             log.info("Twilio SDK initialized successfully");
         } else {
@@ -36,7 +33,8 @@ public class SmsService {
                 "🔐 Passway MFA: Your verification code is %s. It expires in 5 minutes. Do not share this code.",
                 otpCode);
 
-        if (accountSid.startsWith("your-")) {
+        String accountSid = appProperties.twilio().accountSid();
+        if (accountSid == null || accountSid.startsWith("your-")) {
             log.warn("TWILIO NOT CONFIGURED — SMS OTP for {}: {}", toPhoneNumber, otpCode);
             return;
         }
@@ -44,7 +42,7 @@ public class SmsService {
         try {
             Message message = Message.creator(
                     new PhoneNumber(toPhoneNumber),
-                    new PhoneNumber(fromPhoneNumber),
+                    new PhoneNumber(appProperties.twilio().phoneNumber()),
                     messageBody).create();
 
             log.info("SMS OTP sent successfully. SID: {}, To: {}", message.getSid(), toPhoneNumber);

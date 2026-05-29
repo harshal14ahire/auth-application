@@ -1,18 +1,20 @@
-package passway.example.personal.service;
+package passway.example.personal.otp;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import passway.example.personal.model.MfaMethod;
-import passway.example.personal.model.OtpToken;
-import passway.example.personal.model.User;
-import passway.example.personal.repository.OtpTokenRepository;
-import passway.example.personal.repository.UserRepository;
+import passway.example.personal.config.AppProperties;
+import passway.example.personal.mfa.MfaMethod;
+import passway.example.personal.otp.OtpToken;
+import passway.example.personal.user.User;
+import passway.example.personal.otp.OtpTokenRepository;
+import passway.example.personal.user.UserRepository;
+import passway.example.personal.otp.OtpSender;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -21,11 +23,8 @@ public class OtpService {
 
     private final OtpTokenRepository otpTokenRepository;
     private final UserRepository userRepository;
-    private final EmailService emailService;
-    private final SmsService smsService;
-
-    @Value("${app.otp.expiration-seconds}")
-    private int otpExpirationSeconds;
+    private final List<OtpSender> otpSenders;
+    private final AppProperties appProperties;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -39,7 +38,7 @@ public class OtpService {
                 .userId(userId)
                 .token(otpCode)
                 .type(method)
-                .expiresAt(Instant.now().plus(otpExpirationSeconds, ChronoUnit.SECONDS))
+                .expiresAt(Instant.now().plus(appProperties.otp().expirationSeconds(), ChronoUnit.SECONDS))
                 .used(false)
                 .build();
 
@@ -64,21 +63,11 @@ public class OtpService {
     }
 
     private void deliverOtp(User user, String otpCode, MfaMethod method) {
-        switch (method) {
-            case EMAIL_OTP -> {
-                if (user.getEmail() == null || user.getEmail().isBlank()) {
-                    throw new RuntimeException("User email not configured for OTP delivery");
-                }
-                emailService.sendOtpEmail(user.getEmail(), otpCode);
-            }
-            case SMS_OTP -> {
-                if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
-                    throw new RuntimeException("User phone number not configured for SMS OTP");
-                }
-                smsService.sendOtpSms(user.getPhoneNumber(), otpCode);
-            }
-            default -> throw new IllegalArgumentException("Unsupported OTP method: " + method);
-        }
+        OtpSender sender = otpSenders.stream()
+                .filter(s -> s.supports(method))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported OTP method: " + method));
+        sender.send(user, otpCode);
     }
 
     private String generateOtpCode() {

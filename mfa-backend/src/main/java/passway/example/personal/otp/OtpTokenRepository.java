@@ -1,9 +1,9 @@
-package passway.example.personal.repository;
+package passway.example.personal.otp;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-import passway.example.personal.model.MfaMethod;
-import passway.example.personal.model.OtpToken;
+import passway.example.personal.mfa.MfaMethod;
+import passway.example.personal.otp.OtpToken;
 
 import java.util.Optional;
 
@@ -12,6 +12,4 @@ public interface OtpTokenRepository extends MongoRepository<OtpToken, String> {
 
     Optional<OtpToken> findFirstByUserIdAndTypeAndUsedFalseOrderByExpiresAtDesc(
             String userId, MfaMethod type);
-
-    void deleteByUserId(String userId);
 }

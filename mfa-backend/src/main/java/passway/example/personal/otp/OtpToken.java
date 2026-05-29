@@ -1,9 +1,12 @@
-package passway.example.personal.model;
+package passway.example.personal.otp;
+import passway.example.personal.mfa.MfaMethod;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -14,22 +17,23 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Document(collection = "otp_tokens")
 public class OtpToken {
 
     @Id
-    private String id;
+    String id;
 
     @Indexed
-    private String userId;
+    String userId;
 
-    private String token;
+    String token;
 
-    private MfaMethod type; // EMAIL_OTP or SMS_OTP
+    MfaMethod type; // EMAIL_OTP or SMS_OTP
 
     @Indexed(expireAfter = "0s")
-    private Instant expiresAt;
+    Instant expiresAt;
 
     @Builder.Default
-    private boolean used = false;
+    boolean used = false;
 }
