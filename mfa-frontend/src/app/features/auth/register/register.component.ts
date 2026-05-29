@@ -1,4 +1,4 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -13,14 +13,15 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   username = signal('');
   email = signal('');
   password = signal('');
   phoneNumber = signal('');
   loading = signal(false);
   error = signal('');
-
-  constructor(private authService: AuthService, private router: Router) {}
 
   onRegister(): void {
     this.loading.set(true);

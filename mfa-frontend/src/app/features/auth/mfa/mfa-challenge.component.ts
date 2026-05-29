@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -37,14 +37,16 @@ import { AuthService } from '../../../core/services/auth.service';
   `
 })
 export class MfaChallengeComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private auth = inject(AuthService);
+
   mfaToken = signal('');
   methods = signal<string[]>([]);
   selectedMethod = signal('');
   code = signal('');
   loading = signal(false);
   error = signal('');
-
-  constructor(private route: ActivatedRoute, private router: Router, private auth: AuthService) {}
 
   ngOnInit(): void {
     this.mfaToken.set(this.route.snapshot.queryParamMap.get('token') || '');

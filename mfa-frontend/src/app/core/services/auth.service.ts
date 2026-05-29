@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
@@ -8,11 +8,11 @@ import { AuthResponse, LoginRequest, RegisterRequest, MfaVerifyRequest, ApiRespo
 export class AuthService {
   private apiUrl = '/api';
   private tokenSignal = signal<string | null>(localStorage.getItem('auth_token'));
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
   isAuthenticated = computed(() => !!this.tokenSignal());
   token = computed(() => this.tokenSignal());
-
-  constructor(private http: HttpClient, private router: Router) {}
 
   register(req: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, req)

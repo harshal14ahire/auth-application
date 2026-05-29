@@ -1,4 +1,4 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -14,6 +14,9 @@ import { get } from '@github/webauthn-json';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   username = signal('');
   password = signal('');
   loading = signal(false);
@@ -25,8 +28,6 @@ export class LoginComponent {
   mfaMethods = signal<string[]>([]);
   selectedMethod = signal('');
   mfaCode = signal('');
-
-  constructor(private authService: AuthService, private router: Router) {}
 
   onLogin(): void {
     this.loading.set(true);

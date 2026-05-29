@@ -1,4 +1,4 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -69,6 +69,9 @@ import { create } from '@github/webauthn-json';
   `
 })
 export class MfaSetupComponent {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
   showTotpSetup = signal(false);
   showOtpVerify = signal(false);
   otpMethod = signal('');
@@ -77,8 +80,6 @@ export class MfaSetupComponent {
   verifyCode = signal('');
   message = signal('');
   error = signal('');
-
-  constructor(private auth: AuthService, private router: Router) {}
 
   setupTotp(): void {
     this.resetPanels();

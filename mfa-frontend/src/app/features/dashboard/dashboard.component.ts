@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -52,9 +52,8 @@ import { UserProfile } from '../../core/models/auth.model';
   `
 })
 export class DashboardComponent implements OnInit {
+  private auth = inject(AuthService);
   user = signal<UserProfile | null>(null);
-
-  constructor(private auth: AuthService) {}
 
   ngOnInit(): void {
     this.auth.getProfile().subscribe({ next: (u) => this.user.set(u) });
