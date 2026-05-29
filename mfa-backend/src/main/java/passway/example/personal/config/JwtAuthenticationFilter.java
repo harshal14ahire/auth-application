@@ -13,8 +13,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import passway.example.personal.service.CustomUserDetailsService;
-import passway.example.personal.service.JwtService;
+import passway.example.personal.user.CustomUserDetailsService;
+import passway.example.personal.auth.JwtService;
 
 import java.io.IOException;
 

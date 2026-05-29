@@ -1,4 +1,4 @@
-package passway.example.personal.dto;
+package passway.example.personal.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
