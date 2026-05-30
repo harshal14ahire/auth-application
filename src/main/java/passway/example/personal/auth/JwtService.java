@@ -106,7 +106,7 @@ public class JwtService {
         byte[] keyBytes;
         try {
             keyBytes = Decoders.BASE64.decode(appProperties.jwt().secret());
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             keyBytes = appProperties.jwt().secret().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         }
         return Keys.hmacShaKeyFor(keyBytes);
