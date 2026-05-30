@@ -40,6 +40,18 @@ public class AuthController {
         return authService.getWebAuthnLoginOptions(request.mfaToken());
     }
 
+    @PostMapping("/forgot-password")
+    public ApiResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ApiResponse.success("If the email is registered, a password reset link has been sent");
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ApiResponse.success("Password has been reset successfully");
+    }
+
     @GetMapping("/health")
     public ApiResponse health() {
         return ApiResponse.success("Passway MFA Auth Service is running");

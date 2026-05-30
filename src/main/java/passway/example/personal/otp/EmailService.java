@@ -21,17 +21,28 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final MailProperties mailProperties;
     private String otpEmailTemplate;
+    private String passwordResetEmailTemplate;
 
     @PostConstruct
     public void init() {
-        try (InputStream inputStream = getClass().getResourceAsStream("/templates/otp-email.html")) {
-            if (inputStream == null) {
-                throw new IOException("Template file 'otp-email.html' not found in classpath under /templates/");
+        try {
+            try (InputStream inputStream = getClass().getResourceAsStream("/templates/otp-email.html")) {
+                if (inputStream == null) {
+                    throw new IOException("Template file 'otp-email.html' not found in classpath under /templates/");
+                }
+                otpEmailTemplate = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                log.info("Successfully loaded OTP email template from resources");
             }
-            otpEmailTemplate = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            log.info("Successfully loaded OTP email template from resources");
+
+            try (InputStream inputStream = getClass().getResourceAsStream("/templates/password-reset-email.html")) {
+                if (inputStream == null) {
+                    throw new IOException("Template file 'password-reset-email.html' not found in classpath under /templates/");
+                }
+                passwordResetEmailTemplate = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                log.info("Successfully loaded Password Reset email template from resources");
+            }
         } catch (IOException e) {
-            log.error("Failed to load OTP email template", e);
+            log.error("Failed to load email templates", e);
             throw new RuntimeException("Initialization of EmailService failed due to missing template", e);
         }
     }
@@ -54,10 +65,35 @@ public class EmailService {
         }
     }
 
+    public void sendPasswordResetEmail(String toEmail, String resetLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(mailProperties.username());
+            helper.setTo(toEmail);
+            helper.setSubject("🔑 Reset Your Passway Password");
+            helper.setText(buildPasswordResetEmailHtml(resetLink), true);
+
+            mailSender.send(message);
+            log.info("Password reset email sent successfully to {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
     private String buildOtpEmailHtml(String otpCode) {
         if (otpEmailTemplate == null) {
             throw new IllegalStateException("OTP Email template is not initialized");
         }
         return otpEmailTemplate.replace("{{otpCode}}", otpCode);
+    }
+
+    private String buildPasswordResetEmailHtml(String resetLink) {
+        if (passwordResetEmailTemplate == null) {
+            throw new IllegalStateException("Password reset email template is not initialized");
+        }
+        return passwordResetEmailTemplate.replace("{{resetLink}}", resetLink);
     }
 }

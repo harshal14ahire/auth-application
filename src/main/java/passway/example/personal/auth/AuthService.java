@@ -25,10 +25,16 @@ import passway.example.personal.auth.AuthProvider;
 import passway.example.personal.mfa.MfaMethod;
 import passway.example.personal.user.User;
 import passway.example.personal.user.UserRepository;
+import passway.example.personal.user.PasswordResetToken;
+import passway.example.personal.user.PasswordResetTokenRepository;
+import passway.example.personal.otp.EmailService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @Service
@@ -44,6 +50,8 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final AppProperties appProperties;
+    private final PasswordResetTokenRepository tokenRepository;
+    private final EmailService emailService;
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
@@ -256,5 +264,53 @@ public class AuthService {
             case EMAIL_OTP, SMS_OTP -> otpService.verifyOtp(user.getId(), code, method);
             case WEBAUTHN -> webAuthnService.verifyAuthentication(user.getId(), code);
         };
+    }
+
+    public void forgotPassword(ForgotPasswordRequest request) {
+        Optional<User> userOpt = userRepository.findByEmail(request.email());
+        if (userOpt.isEmpty()) {
+            log.warn("Password reset requested for non-existent email: {}", request.email());
+            return;
+        }
+
+        User user = userOpt.get();
+        if (user.getProvider() != AuthProvider.LOCAL) {
+            log.warn("Password reset requested for non-local user: {}", request.email());
+            throw new RuntimeException("Password reset is only supported for local accounts");
+        }
+
+        tokenRepository.deleteByEmail(request.email());
+
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .email(request.email())
+                .expiryDate(Instant.now().plus(15, ChronoUnit.MINUTES))
+                .build();
+
+        tokenRepository.save(resetToken);
+
+        String resetLink = appProperties.webauthn().origin() + "/reset-password?token=" + token;
+        emailService.sendPasswordResetEmail(request.email(), resetLink);
+        log.info("Password reset token generated and email sent for: {}", request.email());
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(request.token())
+                .orElseThrow(() -> new RuntimeException("Invalid or expired password reset token"));
+
+        if (resetToken.getExpiryDate().isBefore(Instant.now())) {
+            tokenRepository.delete(resetToken);
+            throw new RuntimeException("Password reset token has expired");
+        }
+
+        User user = userRepository.findByEmail(resetToken.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        tokenRepository.delete(resetToken);
+        log.info("Password successfully reset for user: {}", user.getUsername());
     }
 }
