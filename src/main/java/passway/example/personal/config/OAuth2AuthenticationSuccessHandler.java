@@ -16,9 +16,13 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final AuthService authService;
+    private final HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
-    public OAuth2AuthenticationSuccessHandler(@org.springframework.context.annotation.Lazy AuthService authService) {
+    public OAuth2AuthenticationSuccessHandler(
+            @org.springframework.context.annotation.Lazy AuthService authService,
+            HttpCookieOAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository) {
         this.authService = authService;
+        this.cookieAuthorizationRequestRepository = cookieAuthorizationRequestRepository;
     }
 
     @Override
@@ -31,6 +35,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 oauthToken.getAuthorizedClientRegistrationId()
         );
 
+        cookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
