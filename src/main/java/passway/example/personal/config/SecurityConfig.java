@@ -69,7 +69,13 @@ public class SecurityConfig {
                                 .baseUri("/oauth2/authorize")
                                 .authorizationRequestRepository(cookieAuthorizationRequestRepository))
                         .redirectionEndpoint(endpoint -> endpoint.baseUri("/oauth2/callback/*"))
-                        .successHandler(oAuth2SuccessHandler))
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            cookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+                            String frontendUrl = appProperties.cors().allowedOrigins().getFirst();
+                            String targetUrl = frontendUrl + "/login?error=" + java.net.URLEncoder.encode(exception.getLocalizedMessage(), java.nio.charset.StandardCharsets.UTF_8);
+                            response.sendRedirect(targetUrl);
+                        }))
 
                 // JWT filter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
